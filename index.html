@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Emoji Motivator 🌲</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0d1117">
+    
     <style>
         :root {
             --bg: #0d1117;
@@ -25,7 +28,6 @@
             align-items: center;
         }
 
-        /* --- Header Section --- */
         header {
             width: 100%;
             max-width: 450px;
@@ -36,7 +38,6 @@
         h1 { font-size: 1.4rem; margin: 0; color: var(--text-main); }
         .season-tag { font-size: 0.8rem; color: var(--accent); font-weight: bold; text-transform: uppercase; }
 
-        /* --- Tree Display Section --- */
         #display-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -46,10 +47,9 @@
             padding: 30px 0;
             text-align: center;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        #tree-emoji { font-size: 100px; display: block; margin: 10px 0; transition: transform 0.3s ease; }
+        #tree-emoji { font-size: 100px; display: block; margin: 10px 0; }
         
         .progress-stats {
             display: flex;
@@ -63,7 +63,6 @@
         .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
         .stat-val { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
 
-        /* --- Task Section --- */
         .task-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -84,13 +83,7 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .task-item:last-child { border-bottom: none; }
-
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            accent-color: var(--accent);
-        }
+        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
 
         input[type="number"] {
             background: #000;
@@ -100,10 +93,8 @@
             width: 60px;
             border-radius: 8px;
             text-align: center;
-            font-weight: bold;
         }
 
-        /* --- Action Button --- */
         .sync-btn {
             background: var(--accent);
             color: white;
@@ -116,11 +107,7 @@
             font-weight: bold;
             margin-top: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(46, 160, 67, 0.4);
         }
-
-        .sync-btn:active { transform: scale(0.98); }
-
     </style>
 </head>
 <body>
@@ -150,27 +137,10 @@
 
     <div class="task-card">
         <h2>Daily Tasks</h2>
-        
-        <div class="task-item">
-            <span>🪥 Morning Self-Care</span>
-            <input type="checkbox" id="t1">
-        </div>
-
-        <div class="task-item">
-            <span>💪 Pushups/Situps/Weights</span>
-            <input type="checkbox" id="t2">
-        </div>
-
-        <div class="task-item">
-            <span>🎹 Piano Practice</span>
-            <input type="checkbox" id="t3">
-        </div>
-
-        <div class="task-item">
-            <span>📚 Reading Book</span>
-            <input type="checkbox" id="t4">
-        </div>
-
+        <div class="task-item"><span>🪥 Morning Self-Care</span><input type="checkbox" id="t1"></div>
+        <div class="task-item"><span>💪 Physical Exercise</span><input type="checkbox" id="t2"></div>
+        <div class="task-item"><span>🎹 Piano Practice</span><input type="checkbox" id="t3"></div>
+        <div class="task-item"><span>📚 Reading Book</span><input type="checkbox" id="t4"></div>
         <div class="task-item" style="margin-top: 10px;">
             <span>📝 Questions Solved:</span>
             <input type="number" id="q-count" placeholder="0">
@@ -180,28 +150,10 @@
     <button class="sync-btn" onclick="syncDaily()">SYNC & LOG DAY</button>
 
     <script>
-        // --- Storage & State Management ---
+        // 1. STATE & STORAGE
         let state = JSON.parse(localStorage.getItem('emojiMotivatorData')) || {
-            xp: 0,
-            streak: 0,
-            season: 1,
-            seasonStart: Date.now(),
-            lastSync: null
+            xp: 0, streak: 0, season: 1, seasonStart: Date.now(), lastSync: null
         };
-
-        function checkSeasonReset() {
-            const now = Date.now();
-            const daysPassed = Math.floor((now - state.seasonStart) / (1000 * 60 * 60 * 24));
-            
-            if (daysPassed >= 30) {
-                alert("Season Complete! Your tree has been archived in the forest. New season starting!");
-                state.season += 1;
-                state.xp = 0;
-                state.seasonStart = Date.now();
-                save();
-            }
-            return daysPassed + 1;
-        }
 
         function save() {
             localStorage.setItem('emojiMotivatorData', JSON.stringify(state));
@@ -209,13 +161,22 @@
         }
 
         function updateUI() {
-            const currentDay = checkSeasonReset();
+            const now = Date.now();
+            const daysPassed = Math.floor((now - state.seasonStart) / (1000 * 60 * 60 * 24));
+            
+            // Auto-reset Season after 30 days
+            if (daysPassed >= 30) {
+                state.season += 1;
+                state.xp = 0;
+                state.seasonStart = Date.now();
+                save();
+            }
+
             document.getElementById('season-num').innerText = state.season;
-            document.getElementById('days-left').innerText = `${currentDay}/30`;
+            document.getElementById('days-left').innerText = `${daysPassed + 1}/30`;
             document.getElementById('total-xp').innerText = state.xp;
             document.getElementById('streak').innerText = `${state.streak} 🔥`;
 
-            // Tree Growth Logic
             const tree = document.getElementById('tree-emoji');
             if (state.xp < 150) tree.innerText = "🌱";
             else if (state.xp < 400) tree.innerText = "🌿";
@@ -226,8 +187,8 @@
 
         function syncDaily() {
             let dailyXP = 0;
+            const today = new Date().toDateString();
             
-            // 1. Calculate XP
             if(document.getElementById('t1').checked) dailyXP += 10;
             if(document.getElementById('t2').checked) dailyXP += 20;
             if(document.getElementById('t3').checked) dailyXP += 10;
@@ -237,40 +198,35 @@
             if (qVal >= 50) dailyXP += 50; 
             else if (qVal > 0) dailyXP += 15;
 
-            // 2. Update State
+            if (dailyXP === 0) return alert("Select at least one task!");
+
             state.xp += dailyXP;
-            
-            // Streak Logic: If synced today, don't double streak, but keep it.
-            const today = new Date().toDateString();
             if (state.lastSync !== today) {
                 state.streak += 1;
                 state.lastSync = today;
             }
 
-            // 3. RESET UI (As requested)
-            document.getElementById('t1').checked = false;
-            document.getElementById('t2').checked = false;
-            document.getElementById('t3').checked = false;
-            document.getElementById('t4').checked = false;
+            // RESET UI
+            document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
             document.getElementById('q-count').value = "";
 
             save();
-            alert(`Great work! +${dailyXP} XP added to your tree.`);
+            
+            // Ask for notification permission on first sync
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
+            alert(`Day Logged! +${dailyXP} XP.`);
         }
 
-        // Initialize
-        updateUI();
+        // 2. SERVICE WORKER REGISTRATION
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("Ghost Worker Active"));
+        }
 
-        // Basic Notification Polling
-        setInterval(() => {
-            const h = new Date().getHours();
-            const m = new Date().getMinutes();
-            if (m === 0 && (h === 8 || h === 18 || h === 20)) {
-                if (Notification.permission === "granted") {
-                    new Notification("Emoji Motivator 🌲", { body: "Time to grow your tree! Check your tasks." });
-                }
-            }
-        }, 60000);
+        updateUI();
     </script>
 </body>
 </html>
